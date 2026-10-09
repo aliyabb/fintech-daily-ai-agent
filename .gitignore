@@ -1,0 +1,17 @@
+# secrets
+.env
+.env.*
+!.env.example
+*.token
+*.secret
+
+# local state (on GitHub it lives in the bot-state branch)
+state/
+
+# python
+__pycache__/
+*.pyc
+.venv/
+
+# os
+.DS_Store

@@ -1,0 +1,100 @@
+name: newsbot
+
+on:
+  # The live bot is woken up on time by an external scheduler (workflow_dispatch, command "tick").
+  # This public copy has no schedule and no secrets: it never runs on its own.
+  workflow_dispatch:
+    inputs:
+      command:
+        description: "What to run"
+        type: choice
+        options: [tick, check, models, whoami, preview, weekly, prepare, publish, inbox, navigation, edit, pinned, metrics, eval, eval-live]
+        default: check
+      channel:
+        description: "Channel"
+        type: choice
+        options: [ru, en, zh]
+        default: ru
+      publish_navigation:
+        description: "navigation: post and pin in the channel (otherwise preview to you)"
+        type: boolean
+        default: false
+      apply_edits:
+        description: "edit / pinned: change the posts in the channels (otherwise a preview on the run page)"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: newsbot-state
+  cancel-in-progress: false
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45   # the common draft run builds three digests
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Load state branch
+        run: |
+          git config user.name "newsbot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if git ls-remote --exit-code --heads origin bot-state > /dev/null; then
+            git fetch origin bot-state:bot-state
+            git worktree add state bot-state
+          else
+            git worktree add --orphan -b bot-state state
+          fi
+
+      - name: Run bot
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          ADMIN_CHAT_ID: ${{ secrets.ADMIN_CHAT_ID }}
+          EVAL_GEMINI_API_KEY: ${{ secrets.EVAL_GEMINI_API_KEY }}   # only eval-live uses it: a key from another project
+          STATE_DIR: state
+          SCHEDULE: ${{ github.event.schedule }}
+          COMMAND: ${{ inputs.command }}
+          CHANNEL: ${{ inputs.channel }}
+          PUBLISH_NAVIGATION: ${{ inputs.publish_navigation }}
+          APPLY_EDITS: ${{ inputs.apply_edits }}
+        run: |
+          if [ -n "$SCHEDULE" ] && { [ -z "$TELEGRAM_BOT_TOKEN" ] || [ -z "$GEMINI_API_KEY" ] || [ -z "$ADMIN_CHAT_ID" ]; }; then
+            echo "::error::Не задан секрет TELEGRAM_BOT_TOKEN, GEMINI_API_KEY или ADMIN_CHAT_ID (Settings → Secrets and variables → Actions)"
+            exit 1
+          fi
+          if [ -n "$SCHEDULE" ]; then
+            python -m newsbot tick
+          elif [ "$COMMAND" = "navigation" ] && [ "$PUBLISH_NAVIGATION" = "true" ]; then
+            python -m newsbot navigation --channel "$CHANNEL" --publish
+          elif { [ "$COMMAND" = "edit" ] || [ "$COMMAND" = "pinned" ]; } && [ "$APPLY_EDITS" = "true" ]; then
+            python -m newsbot "$COMMAND" --apply
+          else
+            python -m newsbot "$COMMAND" --channel "$CHANNEL"
+          fi
+
+      - name: Save state
+        if: always()
+        working-directory: state
+        run: |
+          git add -A
+          if git commit -q -m "state: $(date -u +%Y-%m-%dT%H:%MZ)"; then
+            for attempt in 1 2 3; do
+              git push -q origin bot-state && break
+              [ "$attempt" = 3 ] && { echo "::error::could not save the bot state"; exit 1; }
+              echo "push failed, retrying in 10 s"; sleep 10
+            done
+          else
+            echo "state unchanged"
+          fi

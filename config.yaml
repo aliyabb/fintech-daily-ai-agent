@@ -1,0 +1,243 @@
+# Fintech Daily AI agent — configuration.
+# No secrets here: keys live in .env (locally) or in GitHub Secrets.
+
+feeds_file: feeds.opml
+lookback_hours: 30        # only stories published within this many hours
+max_candidates: 80        # how many pre-ranked stories the model chooses from
+max_per_source: 6         # at most this many candidates from one outlet
+exclude_url_patterns:     # event announcements and ads are not news
+  - /event-info/
+  - /webinar
+  - /events/
+  - /sponsored
+exclude_title_words: [webinar, sponsored, "register now"]
+min_items: 3              # fewer verified stories than this: no digest that day
+max_items: 7
+reserve_items: 3          # stories selected on top of max_items, to replace the ones checks drop
+repeat_window_days: 10    # a story published in the channel within this many days is never repeated
+repeat_title_similarity: 0.6   # share of common title words that marks a story as already published
+article_chars: 6000       # how much of the main article the writer sees
+secondary_article_chars: 2500   # how much of each additional source of the same story
+
+llm:
+  base_url: https://generativelanguage.googleapis.com/v1beta/openai/
+  api_key_env: GEMINI_API_KEY
+  models: [gemini-3.8-flash, gemini-3.7-flash, gemini-3.1-flash-lite]   # in order: the next one if the previous is unavailable
+  # Model routing per step. Steps are spread over two Flash models so that each fits the free tier's daily quota;
+  # facts are checked by a different model than the one that wrote the text.
+  steps:
+    selection: [gemini-3.7-flash, gemini-3.8-flash, gemini-3.1-flash-lite]   # choose the stories
+    digest: [gemini-3.8-flash, gemini-3.7-flash, gemini-3.1-flash-lite]      # write
+    repair: [gemini-3.8-flash, gemini-3.7-flash, gemini-3.1-flash-lite]      # fix what the checks flagged
+    verdicts: [gemini-3.7-flash, gemini-3.8-flash, gemini-3.1-flash-lite]    # fact-check
+    weekly: [gemini-3.8-flash, gemini-3.7-flash, gemini-3.1-flash-lite]      # week in review (once a week)
+    rewrite: [gemini-3.8-flash, gemini-3.7-flash, gemini-3.1-flash-lite]     # "Rewrite" on the editor's request
+  rpm: {gemini-3.8-flash: 5, gemini-3.7-flash: 5, gemini-3.1-flash-lite: 15}   # requests per minute
+  # "Patient" selection: when 3.7 and 3.8 are overloaded the bot waits and retries (20 s, 40 s) and uses Flash Lite
+  # only in the last round: it follows instructions such as "do not repeat stories" less reliably.
+  # Selection only, 3 rounds only: "overloaded" (503) answers appear to count toward the daily quota,
+  # so every extra wait costs quota. Repeats that slip through selection are caught by the fact-check.
+  last_resort: [gemini-3.1-flash-lite]
+  patient_steps: [selection]
+  rounds: 3
+  round_delay_seconds: 20
+  temperature: 0.3
+  timeout_seconds: 180
+  budget_seconds: 720         # at most 12 minutes per digest
+  # Paid-tier (Standard) prices, $ per 1M tokens: only to estimate what a post would cost; the bot runs on the free
+  # tier. Output includes thinking tokens. Google sources, 2026-10: 3.8 Flash on cloud.google.com (Agent Platform
+  # pricing), 3.7 Flash on blog.google (launch post), 3.1 Flash-Lite on ai.google.dev/gemini-api/docs/pricing.
+  # 3.8 and 3.7 Flash are at an introductory price until 2026-12-31; from 2027-01-01: $1.50 input / $7.50 output.
+  pricing:
+    gemini-3.8-flash: {input: 0.75, output: 3.75}
+    gemini-3.7-flash: {input: 0.75, output: 3.75}
+    gemini-3.1-flash-lite: {input: 0.25, output: 1.50}
+
+# Prompt evaluation (python -m newsbot eval / eval-live). The live evaluation spends requests, so it runs only with
+# a separate key from another Google AI Studio project: it has its own free quota, never shared with the digests.
+eval:
+  api_key_env: EVAL_GEMINI_API_KEY
+  days: 3                     # how many of the channel's latest issues the current prompts rewrite
+  steps:
+    digest: [gemini-3.8-flash, gemini-3.7-flash, gemini-3.1-flash-lite]   # the current writer prompt
+    judge: [gemini-3.7-flash, gemini-3.8-flash, gemini-3.1-flash-lite]    # the judge: not the model that wrote
+
+moderation:
+  # Default publishing mode, switched with the bot commands /auto and /manual (the choice is kept in the state branch).
+  # auto: posts go out on their own, the draft carries a "Do not publish" button; manual: only after "Publish".
+  mode: auto
+  auto_veto_minutes: 20       # in auto mode a post goes out no sooner than this after the draft reached the editor
+  approval_wait_hours: 2      # how long to wait for approval after the publish time
+  max_rewrites: 2             # "Rewrite" presses allowed per issue (each costs 2 model requests)
+  prepare_time_utc: "23:13"       # all channels' drafts, together
+  prepare_window_minutes: 75      # how long after that the bot keeps trying to build and send the drafts
+  # Wake-ups (an external scheduler, UTC). On each wake-up the bot does whatever is due and nothing else:
+  # builds drafts in the morning window, publishes a channel in its window, reads editor commands.
+  wake_hours_utc: [23, 0, 1, 2, 3, 5, 6, 7, 8, 9, 10]
+  wake_minutes: [13, 43]
+  command_hours_utc: [12, 15, 18, 21]   # daytime: only read the /auto, /manual, /mode commands
+  # On-the-minute publishing: a wake-up one minute before each channel's time (zh 08:30 Singapore, ru 08:30 Moscow,
+  # en 07:30 UTC); the bot waits for the exact minute and publishes.
+  publish_wake_utc: ["00:29", "05:29", "07:29"]
+  publish_lead_minutes: 3     # if the publish time is at most this many minutes away, wait instead of leaving
+  admin_timezone: Asia/Shanghai   # time zone of the times shown to the editor
+  first_publish_date: "2026-09-17"  # scheduled runs before this date do nothing
+
+weekly:                     # week in review: Mondays, right before the morning digest
+  enabled: true
+  weekday: 0                # 0 is Monday
+  min_stories: 10           # fewer stories published that week: no review
+  min_items: 4              # fewer lines after the number check: no review
+
+source_weights:             # weight of each feeds.opml folder when ranking candidates
+  A-Daily: 1.0
+  B-Newsletters: 0.9
+  C-Media: 0.9
+  D-Crypto: 0.7
+  E-Research-VC-Companies: 0.8
+  F-Regulators: 1.0
+  G-Reddit: 0.3
+  H-Asia: 0.9
+  I-LATAM: 0.8
+  J-Africa: 0.8
+  K-MENA: 0.8
+
+channels:
+  ru:
+    chat_id: "@fintech_daily_ru"
+    brand: "Финтех Daily"
+    lang: ru
+    language: Russian
+    timezone: Europe/Moscow
+    publish_time: "08:30"
+    audience: "Russian-speaking fintech professionals: product managers, analysts, founders, investors, students."
+    focus: "Global fintech news with context; explain terms that are rarely translated into Russian."
+    style_rules:
+      - "Add the English term in parentheses on first use of a specialist term, e.g. «стейблкоины (stablecoins)»."
+      - "Amounts as in the source currency: $590M, €1.2B."
+    labels:
+      title: "☀️ Финтех Daily"
+      why: "Почему важно"
+    rubric_tag: "#главное"
+    weekly_labels:
+      title: "🗓 Итоги недели"
+      top: "Главное"
+      deals: "Сделки и раунды"
+      regulation: "Регулирование"
+      trends: "Тренды"
+    weekly_tag: "#итоги_недели"
+    hashtags:
+      "#платежи": "платежи, эквайринг, переводы"
+      "#необанки": "цифровые банки и банковские лицензии финтехов"
+      "#кредиты": "кредитование физлиц и бизнеса"
+      "#BNPL": "покупки в рассрочку"
+      "#крипто": "криптобиржи и криптоактивы"
+      "#стейблкоины": "стейблкоины и платежи в них"
+      "#регулирование": "законы, лицензии, штрафы, сроки"
+      "#сделки": "раунды, слияния и поглощения"
+      "#IPO": "выходы на биржу и отчётность публичных компаний"
+      "#AI": "искусственный интеллект и AI-агенты в финансах"
+      "#открытыйбанкинг": "открытый банкинг и доступ к данным"
+      "#B2B": "финтех для бизнеса: расходы, счета, выплаты"
+      "#страхование": "страховые технологии"
+      "#инвестиции": "брокеры, управление капиталом, токенизация"
+      "#США": "новости США"
+      "#Европа": "новости ЕС"
+      "#Великобритания": "новости Великобритании"
+      "#Азия": "новости Азии"
+      "#Китай": "новости Китая"
+      "#ЛатАм": "новости Латинской Америки"
+      "#Африка": "новости Африки"
+
+  en:
+    chat_id: "@fintech_daily"
+    brand: "Fintech Daily"
+    lang: en
+    language: English
+    timezone: UTC
+    publish_time: "07:30"
+    audience: "Global fintech operators, product managers, founders, investors and job seekers."
+    focus: "The most consequential global stories; speed and brevity; a sharp 'why it matters'."
+    style_rules:
+      - "No filler intros; start with the fact."
+    labels:
+      title: "☀️ Fintech Daily"
+      why: "Why it matters"
+    rubric_tag: "#brief"
+    weekly_labels:
+      title: "🗓 Week in review"
+      top: "Top stories"
+      deals: "Deals and funding"
+      regulation: "Regulation"
+      trends: "Trends"
+    weekly_tag: "#weekly"
+    hashtags:
+      "#payments": "payments, acquiring, transfers"
+      "#neobanks": "digital banks and fintech bank charters"
+      "#lending": "consumer and business lending"
+      "#BNPL": "buy now, pay later"
+      "#crypto": "crypto exchanges and digital assets"
+      "#stablecoins": "stablecoins and stablecoin payments"
+      "#regulation": "laws, licences, fines, deadlines"
+      "#deals": "funding rounds and M&A"
+      "#IPO": "listings and public-company results"
+      "#AI": "AI and AI agents in finance"
+      "#openbanking": "open banking and data access"
+      "#B2B": "fintech for businesses: spend, accounts, payouts"
+      "#insurtech": "insurance technology"
+      "#wealthtech": "brokers, wealth management, tokenization"
+      "#US": "United States"
+      "#EU": "European Union"
+      "#UK": "United Kingdom"
+      "#Asia": "Asia-Pacific"
+      "#China": "China"
+      "#LATAM": "Latin America"
+      "#Africa": "Africa"
+
+  zh:
+    chat_id: "@fintech_daily_zh"
+    brand: "金融科技日报"
+    lang: zh
+    language: Simplified Chinese
+    timezone: Asia/Singapore
+    publish_time: "08:30"
+    audience: "Chinese-speaking fintech professionals in Singapore, Hong Kong, Taiwan, Malaysia and the diaspora."
+    focus: "Global fintech with extra weight on Asia: Singapore, Hong Kong, China, Southeast Asia."
+    source_weights: {H-Asia: 1.2}   # Asian sources rank higher in the Chinese channel
+    style_rules:
+      - "Use Simplified Chinese characters."
+      - "Show direction with ▲ / ▼ instead of relying on red or green."
+      - "Keep company names in their original Latin spelling on first mention."
+    labels:
+      title: "☀️ 金融科技日报"
+      why: "为什么重要"
+    rubric_tag: "#要闻"
+    weekly_labels:
+      title: "🗓 一周回顾"
+      top: "本周要闻"
+      deals: "融资与并购"
+      regulation: "监管动态"
+      trends: "趋势"
+    weekly_tag: "#一周回顾"
+    hashtags:
+      "#支付": "支付、收单、转账"
+      "#数字银行": "数字银行与金融科技公司银行牌照"
+      "#贷款": "个人与企业贷款"
+      "#先买后付": "先买后付"
+      "#加密货币": "加密货币交易所与数字资产"
+      "#稳定币": "稳定币及稳定币支付"
+      "#监管": "法规、牌照、罚款与期限"
+      "#融资并购": "融资与并购"
+      "#IPO": "上市与上市公司业绩"
+      "#人工智能": "金融领域的人工智能与AI代理"
+      "#开放银行": "开放银行与数据访问"
+      "#B2B": "企业金融科技：支出、账户、付款"
+      "#保险科技": "保险科技"
+      "#财富科技": "券商、财富管理、资产代币化"
+      "#美国": "美国"
+      "#欧洲": "欧盟"
+      "#英国": "英国"
+      "#亚洲": "亚太"
+      "#中国": "中国"
+      "#新加坡": "新加坡"
+      "#香港": "香港"

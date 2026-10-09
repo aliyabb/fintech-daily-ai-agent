@@ -1,0 +1,8 @@
+# Corrections to already published posts (e.g. a story that repeated an earlier one).
+# Preview: `python -m newsbot edit`; apply: `python -m newsbot edit --apply`. Re-running changes nothing.
+# Format:
+# - channel: ru
+#   date: 2026-10-02
+#   remove: ["Exact headline of the story to remove"]
+#   hashtags: "#optional #new #hashtag #line"
+[]
