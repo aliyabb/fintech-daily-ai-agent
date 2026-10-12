@@ -1,0 +1,5 @@
+# Lines to remove from each channel's pinned intro post (entities and formatting of the rest are kept).
+# Preview: `python -m newsbot pinned`; apply: `python -m newsbot pinned --apply`.
+ru: []
+en: []
+zh: []

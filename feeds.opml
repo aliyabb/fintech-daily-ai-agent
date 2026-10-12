@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<opml version="2.0">
+  <head>
+    <title>Fintech Daily bot feeds (checked 2026-09-16)</title>
+  </head>
+  <body>
+    <outline text="A-Daily" title="A-Daily">
+      <outline type="rss" text="Finextra" title="Finextra" xmlUrl="https://www.finextra.com/rss/headlines.aspx"/>
+      <outline type="rss" text="Payments Dive" title="Payments Dive" xmlUrl="https://www.paymentsdive.com/feeds/news/"/>
+      <outline type="rss" text="TechCrunch Fintech" title="TechCrunch Fintech" xmlUrl="https://techcrunch.com/category/fintech/feed/"/>
+    </outline>
+    <outline text="B-Newsletters" title="B-Newsletters">
+      <outline type="rss" text="Net Interest" title="Net Interest" xmlUrl="https://www.netinterest.co/feed"/>
+      <outline type="rss" text="Fintech Business Weekly" title="Fintech Business Weekly" xmlUrl="https://fintechbusinessweekly.substack.com/feed"/>
+      <outline type="rss" text="Fintech Takes" title="Fintech Takes" xmlUrl="https://fintechtakes.com/feed"/>
+      <outline type="rss" text="Linas's Newsletter" title="Linas's Newsletter" xmlUrl="https://linas.substack.com/feed"/>
+      <outline type="rss" text="Fintech Blueprint" title="Fintech Blueprint" xmlUrl="https://lex.substack.com/feed"/>
+      <outline type="rss" text="Fintech Today" title="Fintech Today" xmlUrl="https://fintechtoday.substack.com/feed"/>
+      <outline type="rss" text="The Diff" title="The Diff" xmlUrl="https://www.thediff.co/feed"/>
+    </outline>
+    <outline text="C-Media" title="C-Media">
+      <outline type="rss" text="Banking Dive" title="Banking Dive" xmlUrl="https://www.bankingdive.com/feeds/news/"/>
+      <outline type="rss" text="Sifted" title="Sifted" xmlUrl="https://sifted.eu/feed"/>
+      <outline type="rss" text="PYMNTS" title="PYMNTS" xmlUrl="https://www.pymnts.com/feed/"/>
+      <outline type="rss" text="The Fintech Times" title="The Fintech Times" xmlUrl="https://thefintechtimes.com/feed/"/>
+      <outline type="rss" text="Fintech News Singapore" title="Fintech News Singapore" xmlUrl="https://fintechnews.sg/feed/"/>
+      <outline type="rss" text="Tearsheet" title="Tearsheet" xmlUrl="https://tearsheet.co/feed/"/>
+      <outline type="rss" text="FinTech Global" title="FinTech Global" xmlUrl="https://fintech.global/feed/" htmlUrl="https://fintech.global/"/>
+      <outline type="rss" text="Crowdfund Insider" title="Crowdfund Insider" xmlUrl="https://www.crowdfundinsider.com/feed/" htmlUrl="https://www.crowdfundinsider.com/"/>
+      <outline type="rss" text="Rest of World" title="Rest of World" xmlUrl="https://restofworld.org/feed/latest/" htmlUrl="https://restofworld.org/"/>
+    </outline>
+    <outline text="D-Crypto" title="D-Crypto">
+      <outline type="rss" text="CoinDesk" title="CoinDesk" xmlUrl="https://www.coindesk.com/arc/outboundfeeds/rss/"/>
+      <outline type="rss" text="The Block" title="The Block" xmlUrl="https://www.theblock.co/rss.xml"/>
+      <outline type="rss" text="Blockworks" title="Blockworks" xmlUrl="https://blockworks.co/feed"/>
+      <outline type="rss" text="Bankless" title="Bankless" xmlUrl="https://www.bankless.com/rss/feed"/>
+      <outline type="rss" text="Chainalysis Blog" title="Chainalysis Blog" xmlUrl="https://www.chainalysis.com/feed/"/>
+    </outline>
+    <outline text="E-Research-VC-Companies" title="E-Research-VC-Companies">
+      <outline type="rss" text="CB Insights Research" title="CB Insights Research" xmlUrl="https://www.cbinsights.com/research/feed/"/>
+      <outline type="rss" text="QED Investors" title="QED Investors" xmlUrl="https://www.qedinvestors.com/blog/rss.xml"/>
+      <outline type="rss" text="Stripe Blog" title="Stripe Blog" xmlUrl="https://stripe.com/blog/feed.rss"/>
+      <outline type="rss" text="Plaid Blog" title="Plaid Blog" xmlUrl="https://plaid.com/blog/rss.xml"/>
+    </outline>
+    <outline text="F-Regulators" title="F-Regulators">
+      <outline type="rss" text="SEC press releases" title="SEC press releases" xmlUrl="https://www.sec.gov/news/pressreleases.rss"/>
+      <outline type="rss" text="Federal Reserve press releases" title="Federal Reserve press releases" xmlUrl="https://www.federalreserve.gov/feeds/press_all.xml"/>
+      <outline type="rss" text="Federal Reserve banking regulation" title="Federal Reserve banking regulation" xmlUrl="https://www.federalreserve.gov/feeds/press_bcreg.xml"/>
+      <outline type="rss" text="OCC news" title="OCC news" xmlUrl="https://www.occ.gov/rss/occ_news.xml"/>
+      <outline type="rss" text="OCC bulletins" title="OCC bulletins" xmlUrl="https://www.occ.gov/rss/occ_bulletins.xml"/>
+      <outline type="rss" text="CFTC press releases" title="CFTC press releases" xmlUrl="https://www.cftc.gov/RSS/RSSGP/rssgp.xml"/>
+      <outline type="rss" text="FCA news" title="FCA news" xmlUrl="https://www.fca.org.uk/news/rss.xml"/>
+      <outline type="rss" text="Bank of England news" title="Bank of England news" xmlUrl="https://www.bankofengland.co.uk/rss/news"/>
+      <outline type="rss" text="EBA" title="EBA" xmlUrl="https://www.eba.europa.eu/rss.xml"/>
+      <outline type="rss" text="ESMA" title="ESMA" xmlUrl="https://www.esma.europa.eu/rss.xml"/>
+      <outline type="rss" text="ECB press releases" title="ECB press releases" xmlUrl="https://www.ecb.europa.eu/rss/press.html"/>
+      <outline type="rss" text="BIS press releases" title="BIS press releases" xmlUrl="https://www.bis.org/doclist/all_pressrels.rss"/>
+      <outline type="rss" text="RBI press releases" title="RBI press releases" xmlUrl="https://www.rbi.org.in/pressreleases_rss.xml"/>
+    </outline>
+    <outline text="G-Reddit" title="G-Reddit">
+      <outline type="rss" text="r/fintech" title="r/fintech" xmlUrl="https://www.reddit.com/r/fintech/.rss"/>
+    </outline>
+    <outline text="H-Asia" title="H-Asia">
+      <outline type="rss" text="Fintech News Hong Kong" title="Fintech News Hong Kong" xmlUrl="https://fintechnews.hk/feed/" htmlUrl="https://fintechnews.hk/"/>
+      <outline type="rss" text="Fintech News Malaysia" title="Fintech News Malaysia" xmlUrl="https://fintechnews.my/feed/" htmlUrl="https://fintechnews.my/"/>
+      <outline type="rss" text="Fintech News Philippines" title="Fintech News Philippines" xmlUrl="https://fintechnews.ph/feed/" htmlUrl="https://fintechnews.ph/"/>
+      <outline type="rss" text="Tech in Asia" title="Tech in Asia" xmlUrl="https://www.techinasia.com/feed" htmlUrl="https://www.techinasia.com/"/>
+      <outline type="rss" text="Inc42" title="Inc42" xmlUrl="https://inc42.com/feed/" htmlUrl="https://inc42.com/"/>
+      <outline type="rss" text="MediaNama" title="MediaNama" xmlUrl="https://www.medianama.com/feed/" htmlUrl="https://www.medianama.com/"/>
+      <outline type="rss" text="未央网" title="未央网" xmlUrl="https://www.weiyangx.com/feed" htmlUrl="https://www.weiyangx.com/"/>
+    </outline>
+    <outline text="I-LATAM" title="I-LATAM">
+      <outline type="rss" text="LatamList" title="LatamList" xmlUrl="https://latamlist.com/feed/" htmlUrl="https://latamlist.com/"/>
+      <outline type="rss" text="iupana" title="iupana" xmlUrl="https://iupana.com/feed/" htmlUrl="https://iupana.com/"/>
+    </outline>
+    <outline text="J-Africa" title="J-Africa">
+      <outline type="rss" text="TechCabal" title="TechCabal" xmlUrl="https://techcabal.com/feed/" htmlUrl="https://techcabal.com/"/>
+    </outline>
+    <outline text="K-MENA" title="K-MENA">
+      <outline type="rss" text="Fintech News Middle East" title="Fintech News Middle East" xmlUrl="https://fintechnews.ae/feed/" htmlUrl="https://fintechnews.ae/"/>
+      <outline type="rss" text="Wamda" title="Wamda" xmlUrl="https://www.wamda.com/feed" htmlUrl="https://www.wamda.com/"/>
+    </outline>
+  </body>
+</opml>
